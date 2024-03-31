@@ -68,6 +68,7 @@ void setLCDContent(String line1, String line2) {
   lcd.print(line2);
 }
 
+// just ask the current time
 void firstRun() {
   setLCDContent("Enter time:", "HH:MM:SS");
   byte input_len = 6;
@@ -123,8 +124,20 @@ void firstRun() {
 
 void modeSelect() {
   setLCDContent("[A] Alarm Clock Mode", "[B] Timer Mode");
+  int inc = 1000;
   while (true) {
     char selected_mode = keypad.getKey();
+    inc -= 10;
+    delay(10);
+    if (inc == 0) {
+      inc = 1000;
+      incrementTime();
+      Serial.print(hh);
+      Serial.print(':');
+      Serial.print(mm);
+      Serial.print(':');
+      Serial.println(ss);
+    }
     if (selected_mode == NULL) continue;
     Serial.println("Checking selection");
     Serial.print("Selected:");
@@ -146,9 +159,21 @@ void startAlarmClockMode() {
   byte input_len = 6;
   byte pointer = 0;
   char input[input_len + 1] = {};
+  int inc = 1000;
   while (true) {
     do {
       input[pointer] = keypad.getKey();
+      inc -= 10;
+      delay(10);
+      if (inc == 0) {
+        inc = 1000;
+        incrementTime();
+        Serial.print(hh);
+        Serial.print(':');
+        Serial.print(mm);
+        Serial.print(':');
+        Serial.println(ss);
+      }
     } while (input[pointer] == NULL);
 
     // backspace
@@ -218,6 +243,9 @@ void setup() {
   pinMode(PIN_LED_GREEN, OUTPUT);
   pinMode(PIN_LED_RED, OUTPUT);
 
+  Serial.println("Initializing buzzer...");
+  pinMode(PIN_BUZ, OUTPUT);
+
   Serial.println("Initializing LCD Module...");
   lcd.init();
   lcd.backlight();
@@ -228,7 +256,7 @@ void setup() {
 }
 
 void loop() {
-  Serial.println("Start loop");
+  Serial.println("Start alarm loop");
   while (!(hh == alarm_hh && mm == alarm_mm && ss == alarm_ss)) {
     delay(1000);
     incrementTime();
@@ -252,6 +280,7 @@ void loop() {
     Serial.print(':');
     Serial.println(alarm_ss);
   }
+
   // generate a random equation
   int x = random(5, 10), y = random(5, 10), z = random(5, 20);
   int answer = x * y + z;
@@ -262,17 +291,29 @@ void loop() {
   char input[input_len + 1] = {};
   digitalWrite(PIN_LED_RED, HIGH);
   digitalWrite(PIN_BUZ, HIGH);
+  int inc = 1000;
   while (true) {
     do {
       input[pointer] = keypad.getKey();
+      inc -= 10;
+      delay(10);
+      if (inc == 0) {
+        inc = 1000;
+        incrementTime();
+        Serial.print(hh);
+        Serial.print(':');
+        Serial.print(mm);
+        Serial.print(':');
+        Serial.println(ss);
+      }
     } while (input[pointer] == NULL);
 
     // backspace
     if (input[pointer] == '*') {
       if (pointer != 0) {
         input[pointer] = NULL;
-        lcd.setCursor(time_cols[--pointer], 1);
-        lcd.print(time_cols_placeholder[pointer]);
+        lcd.setCursor(--pointer, 1);
+        lcd.print(' ');
       }
     }
 
@@ -286,6 +327,13 @@ void loop() {
         modeSelect();
         break;
       }
+      pointer = 0;
+      lcd.clear();
+      x = random(5, 10);
+      y = random(5, 10);
+      z = random(5, 20);
+      answer = x * y + z;
+      setLCDContent(String(x) + " * " + String(y) + " + " + String(z), "=");
       continue;
     }
 
