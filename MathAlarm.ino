@@ -222,11 +222,11 @@ void startTimerMode() {
 }
 
 void incrementTime() {
-  if (ss++ == 60) {
+  if (ss++ == 59) {
     ss = 0;
-    if (mm++ == 60) {
+    if (mm++ == 59) {
       mm = 0;
-      if (hh++ == 24) {
+      if (hh++ == 23) {
         hh = 0;
       }
     }
@@ -262,11 +262,30 @@ void loop() {
     incrementTime();
     lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.print(hh);
+    lcd.print(hh < 10 ? "0" + String(hh) : hh);
     lcd.print(':');
-    lcd.print(mm);
+    lcd.print(mm < 10 ? "0" + String(mm) : mm);
     lcd.print(':');
-    lcd.print(ss);
+    lcd.print(ss < 10 ? "0" + String(ss) : ss);
+    lcd.setCursor(0, 1);
+    int total_rem =
+        (alarm_ss - ss) + ((alarm_mm - mm) * 60) + ((alarm_hh - hh) * 3600);
+    // int rem_ss = alarm_ss - ss;
+    // int rem_mm = alarm_mm - mm;
+    // int rem_hh = alarm_hh - hh;
+    int rem_hh = total_rem / 3600;
+    int rem_mm = (total_rem % 3600) / 60;
+    int rem_ss = (total_rem % 3600) % 60;
+
+    Serial.println(rem_hh);
+    Serial.println(rem_mm);
+    Serial.println(rem_ss);
+    lcd.print(rem_hh < 10 ? "0" + String(rem_hh) : rem_hh);
+    lcd.print("h ");
+    lcd.print(rem_mm < 10 ? "0" + String(rem_mm) : rem_mm);
+    lcd.print("m ");
+    lcd.print(rem_ss < 10 ? "0" + String(rem_ss) : rem_ss);
+    lcd.print("s ");
 
     Serial.print(hh);
     Serial.print(':');
